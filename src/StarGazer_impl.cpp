@@ -51,12 +51,33 @@ void StarGazer_impl::_receivePacket(char* message, const unsigned int buffer_len
 
 void StarGazer_impl::_waitReply(const char* message) {
   char buffer[BUFFER_LEN];
+  _waitReply(message, buffer, BUFFER_LEN);
+}
+
+void StarGazer_impl::_waitReply(const char* message, char* buffer, const unsigned int buffer_len) {
   do {
     unsigned int read_len = 0;
-    _receivePacket(buffer, BUFFER_LEN, &read_len, m_timeout);
+    _receivePacket(buffer, buffer_len, &read_len, m_timeout);
   } while(strncmp(buffer, message, strlen(message)) != 0);
 }
 
+bool StarGazer_impl::_messagePop(const char* message, const unsigned int startIndex, unsigned int* stopIndex, char* buffer)
+{
+  unsigned int len = strlen(message) - startIndex;
+  unsigned int i;
+  for(i = 0;i < len;i++) {
+    buffer[i] = message[i];
+    if (buffer[i] == '|') {
+      i++;
+      *stopIndex = i;
+      buffer[i] = 0;
+      return true;
+    }
+  }
+  *stopIndex = i;
+  buffer[i] = 0;
+  return false;
+}
 
 void StarGazer_impl::calcStart() {
   _sendPacket("#CalcStart");
@@ -71,5 +92,11 @@ void StarGazer_impl::calcStop() {
 
 
 std::string StarGazer_impl::getVersion() {
-  return "";
+  char buffer[BUFFER_LEN];
+  char value[BUFFER_LEN];
+  unsigned int stopIndex = 0;
+  _sendPacket("@Version");
+  _waitReply("$Version", buffer, BUFFER_LEN);
+  _messagePop(buffer, 8, &stopIndex, value);
+  return std::string(value);
 }

@@ -53,9 +53,15 @@ class StarGazer_impl {
   void _sendPacket(const char* message);
   void _receivePacket(char* message, const unsigned int buffer_len, unsigned int* read_len, ssr::TimeSpec& timeout);
   void _waitReply(const char* message);
+  void _waitReply(const char* message, char* buffer, const unsigned int buffer_len);
 
   ssr::Timer m_receiveTimer;
   ssr::TimeSpec m_timeout;
+
+  /**
+   * @return If false if message ends.
+   */
+  bool _messagePop(const char* message, const unsigned int startIndex, unsigned int* stopIndex, char* buffer);
  public:
   void calcStart();
   void calcStop();

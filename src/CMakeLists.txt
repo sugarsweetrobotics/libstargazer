@@ -3,7 +3,7 @@ set(_srcs StarGazer.c)
 set(_demo_srcs demo.c)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME})
+include_directories(${PROJECT_SOURCE_DIR}/libaqua/include)
 
 find_package(Threads)
 

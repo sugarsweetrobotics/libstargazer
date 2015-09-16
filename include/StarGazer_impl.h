@@ -7,8 +7,10 @@
 
 #pragma once
 
+#include "stargazer.h"
 #include <string>
 #include "SerialPort.h"
+#include "Thread.h"
 
 class StarGazerException : public std::exception {
  public:
@@ -35,7 +37,7 @@ class TimeoutException : public std::exception {
 class StarGazer_impl {
  private:
   ssr::SerialPort* m_pSerialPort;
-  
+  ssr::Mutex m_Mutex;
  public:
   /**
    * Constructor
@@ -50,10 +52,14 @@ class StarGazer_impl {
    */
   ~StarGazer_impl();
  private:
-  void _sendPacket(const char* message);
+  void _sendPacket(const char symbol, const char* message);
   void _receivePacket(char* message, const unsigned int buffer_len, unsigned int* read_len, ssr::TimeSpec& timeout);
-  void _waitReply(const char* message);
-  void _waitReply(const char* message, char* buffer, const unsigned int buffer_len);
+
+  void _waitReply(const char symbol, const char* message);
+  void _waitReply(const char symbol, const char* message, char* buffer, const unsigned int buffer_len);
+
+  void _read(const char* message, char* buffer, const unsigned int buffer_len);
+  void _write(const char* message, const char* value);
 
   ssr::Timer m_receiveTimer;
   ssr::TimeSpec m_timeout;
@@ -66,8 +72,10 @@ class StarGazer_impl {
   void calcStart();
   void calcStop();
 
-  
+ public:  
   std::string getVersion();
+  
+  
 };
 
 

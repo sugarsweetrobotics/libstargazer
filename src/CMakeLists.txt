@@ -1,5 +1,5 @@
 #set(_srcs Kobuki_impl.cpp KobukiBase.cpp SerialPort.cpp Thread.cpp Translator.cpp Transport.cpp DockingController.cpp libkobuki.cpp kobukicwrapper.cpp)
-set(_srcs StarGazer.c)
+set(_srcs stargazer.cpp StarGazer_impl.cpp)
 set(_demo_srcs demo.c)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)

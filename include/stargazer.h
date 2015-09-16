@@ -20,10 +20,10 @@ extern "C" {
 
 typedef int32_t SG_HANDLE;
 
-enum SG_RESULT {
+typedef enum _SG_RESULT_ENUM {
   SG_OK = 0,
   SG_FAILED = -1,
-};
+} SG_RESULT;
 
 SG_RESULT stargazer_init(const char* filename, SG_HANDLE* pSG);
 

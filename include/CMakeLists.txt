@@ -1,5 +1,5 @@
 #set(hdrs Thread.h Timer.h TimeSpec.h libkobuki.h Kobuki.h)
-set(hdrs stargazer.h)
+set(hdrs stargazer.h StarGazer_impl.h)
 
 set(install_hdrs StarGazer.h)
 

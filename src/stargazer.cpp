@@ -59,6 +59,29 @@ SG_CATCH
   return SG_OK;
 }
 
+SG_RESULT stargazer_calcStart(const SG_HANDLE SG) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->calcStart();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_calcStop(const SG_HANDLE SG) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->calcStop();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setEnd(const SG_HANDLE SG) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setEnd();
+  SG_CATCH;
+  return SG_OK;
+}
 
 SG_RESULT stargazer_getVersion(const SG_HANDLE SG, char* version, uint32_t buffer_len) {
   SG_TRY;
@@ -73,6 +96,119 @@ SG_RESULT stargazer_getMarkType(const SG_HANDLE SG, SG_MARKTYPE* markType) {
   SG_TRY;
   StarGazer_impl *sg = getSG(SG);
   *markType = sg->getMarkType();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setMarkType(const SG_HANDLE SG, const SG_MARKTYPE markType) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setMarkType(markType);
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_isLandmarkHeightFix(const SG_HANDLE SG, int* yes) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  *yes = sg->isLandmarkHeightFix();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setLandmarkHeightFix(const SG_HANDLE SG, const int yes) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setLandmarkHeightFix(yes);
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_getNumOfLandmark(const SG_HANDLE SG, int* num) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  *num = sg->getNumOfLandmark();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setNumOfLandmark(const SG_HANDLE SG, const int num) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setNumOfLandmark(num);
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_getReferenceID(const SG_HANDLE SG, SG_ID* id) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  *id = sg->getReferenceID();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setReferenceID(const SG_HANDLE SG, const SG_ID id) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setReferenceID(id);
+  SG_CATCH;
+  return SG_OK;
+}
+
+
+SG_RESULT stargazer_getLandmarkHeight(const SG_HANDLE SG, double* height) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  *height = sg->getLandmarkHeight();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setLandmarkHeight(const SG_HANDLE SG, const double height) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setLandmarkHeight(height);
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_getMode(const SG_HANDLE SG, SG_MODE* mode) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  *mode = sg->getMode();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setMode(const SG_HANDLE SG, const SG_MODE mode) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setMode(mode);
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_getBaudrate(const SG_HANDLE SG, int* baudrate) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  *baudrate = sg->getBaudrate();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_setBaudrate(const SG_HANDLE SG, const int baudrate) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->setBaudrate(baudrate);
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_getPosition(const SG_HANDLE SG, SG_ID* id, double *x, double *y, double *z, double *a) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->getPosition(id, x, y, z, a);
   SG_CATCH;
   return SG_OK;
 }

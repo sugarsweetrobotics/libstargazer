@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "StarGazer_impl.h"
 #define DEBUG
 
@@ -16,11 +18,21 @@ static const char SYM_RETURN = '$';
 static const char SYM_ACK = '!';
 static const char SYM_MESSAGE = '*';
 static const char SYM_DELIM = '|';
+static const char SYM_RESULT = '^';
 
 static const char MSG_CALCSTART[] = "CalcStart";
 static const char MSG_CALCSTOP[] = "CalcStop";
+static const char MSG_SETEND[] = "SetEnd";
+static const char MSG_PARAMETERUPDATE[] = "ParameterUpdate";
 static const char MSG_VERSION[] = "Version";
 static const char MSG_MARKTYPE[] = "MarkType";
+static const char MSG_MARKMODE[] = "MarkMode";
+static const char MSG_HEIGHTFIX[] = "HeightFix";
+static const char MSG_REFID[] = "RefID";
+static const char MSG_IDNUM[] = "IDNum";
+static const char MSG_MARKHEIGHT[] = "MarkHeight";
+static const char MSG_BAUDRATE[] = "Baudrate";
+static const char MSG_MAPDATA[] = "I";
 
 static const char MSG_MARK_HLD1S[] = "HLD1S";
 static const char MSG_MARK_HLD2S[] = "HLD2S";
@@ -28,6 +40,11 @@ static const char MSG_MARK_HLD3S[] = "HLD3S";
 static const char MSG_MARK_HLD1L[] = "HLD1L";
 static const char MSG_MARK_HLD2L[] = "HLD2L";
 static const char MSG_MARK_HLD3L[] = "HLD3L";
+
+static const char MSG_YES[] = "Yes";
+static const char MSG_NO[] = "No";
+static const char MSG_ALONE[] = "Alone";
+static const char MSG_MAP[] = "Map";
 
 StarGazer_impl::StarGazer_impl(const char* filename, const int baudrate /* = 115200 */) {
   m_pSerialPort = new ssr::SerialPort(filename, baudrate);
@@ -82,16 +99,19 @@ void StarGazer_impl::_receivePacket(char* message, const unsigned int buffer_len
   dbg("return: %s\n", message);
 }
 
-void StarGazer_impl::_waitReply(const char symbol, const char* message) {
+void StarGazer_impl::_waitReply(const char symbol, const char* message, ssr::TimeSpec* pTimeout) {
   char buffer[BUFFER_LEN];
-  _waitReply(symbol, message, buffer, BUFFER_LEN);
+  _waitReply(symbol, message, buffer, BUFFER_LEN, pTimeout);
 }
 
-void StarGazer_impl::_waitReply(const char symbol, const char* message, char* buffer, const unsigned int buffer_len) {
+void StarGazer_impl::_waitReply(const char symbol, const char* message, char* buffer, const unsigned int buffer_len, ssr::TimeSpec* pTimeout) {
   dbg("called (%c, %s)\n", symbol, message);
+  if (pTimeout == NULL) {
+    pTimeout = &m_timeout;
+  }
   do {
     unsigned int read_len = 0;
-    _receivePacket(buffer, buffer_len, &read_len, m_timeout);
+    _receivePacket(buffer, buffer_len, &read_len, *pTimeout);
   } while(buffer[0] != symbol || strncmp(buffer+1, message, strlen(message)) != 0);
   dbg("return : %s\n", buffer);
 }
@@ -142,16 +162,19 @@ void StarGazer_impl::_write(const char* message, const char* value)
   _waitReply(SYM_ACK, message);
 }
 
+void StarGazer_impl::setEnd() {
+  _sendPacket(SYM_WRITE, MSG_SETEND);
+  ssr::TimeSpec timeout(10,0);
+  _waitReply(SYM_ACK, MSG_PARAMETERUPDATE, &timeout);
+}
+
 std::string StarGazer_impl::getVersion() {
   char value[BUFFER_LEN];
   _read(MSG_VERSION, value, BUFFER_LEN);
   return std::string(value);
 }
 
-
-SG_MARKTYPE StarGazer_impl::getMarkType() {
-  char value[BUFFER_LEN];
-  _read(MSG_MARKTYPE, value, BUFFER_LEN);
+static SG_MARKTYPE __str_to_marktype(const char* value) {
   if (strcmp(value, MSG_MARK_HLD1S) == 0) {
     return SG_HLD1S;
   } else if (strcmp(value, MSG_MARK_HLD2S) == 0) {
@@ -166,4 +189,153 @@ SG_MARKTYPE StarGazer_impl::getMarkType() {
     return SG_HLD3L;
   } 
   throw UnknownMarkTypeException(); 
+}
+
+static const char* __marktype_to_str(const SG_MARKTYPE type) {
+  switch(type) {
+  case SG_HLD1S: return MSG_MARK_HLD1S;
+  case SG_HLD2S: return MSG_MARK_HLD2S;
+  case SG_HLD3S: return MSG_MARK_HLD3S;
+  case SG_HLD1L: return MSG_MARK_HLD1L;
+  case SG_HLD2L: return MSG_MARK_HLD2L;
+  case SG_HLD3L: return MSG_MARK_HLD3L;
+  default: throw UnknownMarkTypeException();
+  }
+}
+
+SG_MARKTYPE StarGazer_impl::getMarkType() {
+  char value[BUFFER_LEN];
+  _read(MSG_MARKTYPE, value, BUFFER_LEN);
+  return __str_to_marktype(value);
+}
+
+void StarGazer_impl::setMarkType(const SG_MARKTYPE type) {
+  _write(MSG_MARKTYPE, __marktype_to_str(type));
+}
+
+bool StarGazer_impl::isLandmarkHeightFix() {
+  char value[BUFFER_LEN];
+  _read(MSG_HEIGHTFIX, value, BUFFER_LEN);
+  if (strcmp(value, MSG_YES) == 0) {
+    return true;
+  } 
+  return false;
+}
+
+void StarGazer_impl::setLandmarkHeightFix(const bool yes) {
+  if (yes) {
+    _write(MSG_HEIGHTFIX, MSG_YES);
+  } else {
+    _write(MSG_HEIGHTFIX, MSG_NO);
+  }
+}
+
+int StarGazer_impl::getNumOfLandmark() {
+  char value[BUFFER_LEN];
+  _read(MSG_IDNUM, value, BUFFER_LEN);
+  std::istringstream iss(value);
+  int d;
+  iss >> d;
+  return d;
+}
+
+void StarGazer_impl::setNumOfLandmark(const int num) {
+  std::ostringstream oss;
+  oss << num;
+  _write(MSG_IDNUM, oss.str().c_str());
+}
+
+SG_ID StarGazer_impl::getReferenceID() {
+  char value[BUFFER_LEN];
+  _read(MSG_REFID, value, BUFFER_LEN);
+  std::istringstream iss(value);
+  int d;
+  iss >> d;
+  return (SG_ID)d;
+}
+
+void StarGazer_impl::setReferenceID(const SG_ID id) {
+  std::ostringstream oss;
+  oss << id;
+  _write(MSG_REFID, oss.str().c_str());
+}
+
+
+double StarGazer_impl::getLandmarkHeight() {
+  char value[BUFFER_LEN];
+  _read(MSG_MARKHEIGHT, value, BUFFER_LEN);
+  std::istringstream iss(value);
+  double d;
+  iss >> d;
+  return d/1000.0;
+}
+
+void StarGazer_impl::setLandmarkHeight(const double height) {
+  std::ostringstream oss;
+  oss << ((int)(height * 1000));
+  _write(MSG_MARKHEIGHT, oss.str().c_str());
+}
+
+SG_MODE StarGazer_impl::getMode() {
+  char value[BUFFER_LEN];
+  _read(MSG_MARKMODE, value, BUFFER_LEN);
+  if (strcmp(value, MSG_ALONE) == 0) {
+    return SG_ALONE;
+  } else if (strcmp(value, MSG_MAP) == 0) {
+    return SG_MAP;
+  } 
+  throw UnknownModeException();
+}
+
+void StarGazer_impl::setMode(const SG_MODE mode) {
+  std::ostringstream oss;
+  oss << mode;
+  _write(MSG_MARKMODE, oss.str().c_str());
+}
+
+int StarGazer_impl::getBaudrate() {
+  char value[BUFFER_LEN];
+  _read(MSG_BAUDRATE, value, BUFFER_LEN);
+  std::istringstream iss(value);
+  int d;
+  iss >> d;
+  return d;
+}
+
+void StarGazer_impl::setBaudrate(const int baudrate) {
+  std::ostringstream oss;
+  oss << baudrate;
+  _write(MSG_BAUDRATE, oss.str().c_str());
+}
+
+void StarGazer_impl::getPosition(SG_ID* id, double* x, double* y, double* z, double* a) {
+  char strbuf[BUFFER_LEN];
+  char value[BUFFER_LEN];
+  unsigned int stopIndex = 0;
+  char* ptr = strbuf + 2;
+  _waitReply(SYM_RESULT, MSG_MAPDATA, strbuf, BUFFER_LEN);
+  
+  _messagePop(ptr, &stopIndex, value);
+  std::istringstream iss(value);
+  iss >> *id;
+  ptr += stopIndex;
+  _messagePop(ptr, &stopIndex, value);
+  iss.clear();
+  iss.str(value);
+  iss >> *a;
+  ptr += stopIndex;
+  _messagePop(ptr, &stopIndex, value);
+  iss.clear();
+  iss.str(value);
+  iss >> *x;
+  ptr += stopIndex;
+  _messagePop(ptr, &stopIndex, value);
+  iss.clear();
+  iss.str(value);
+  iss >> *y;
+  ptr += stopIndex;
+  _messagePop(ptr, &stopIndex, value);
+  iss.clear();
+  iss.str(value);
+  iss >> *z;
 }

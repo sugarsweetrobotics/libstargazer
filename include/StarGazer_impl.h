@@ -34,6 +34,17 @@ class TimeoutException : public std::exception {
   }
 };
 
+class UnknownMarkTypeException : public std::exception {
+ public:
+  UnknownMarkTypeException() {}
+  virtual ~UnknownMarkTypeException() throw() {}
+
+ public:
+  virtual const char* what() const throw() {
+    return "Unknown Mark Type Detected";
+  }
+};
+
 class StarGazer_impl {
  private:
   ssr::SerialPort* m_pSerialPort;
@@ -67,15 +78,14 @@ class StarGazer_impl {
   /**
    * @return If false if message ends.
    */
-  bool _messagePop(const char* message, const unsigned int startIndex, unsigned int* stopIndex, char* buffer);
+  bool _messagePop(const char* message, unsigned int* stopIndex, char* buffer);
  public:
   void calcStart();
   void calcStop();
 
  public:  
   std::string getVersion();
-  
-  
+  SG_MARKTYPE getMarkType();
 };
 
 

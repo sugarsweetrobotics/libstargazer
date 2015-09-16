@@ -20,6 +20,8 @@ public:
 
 #define SG_CATCH } catch (InvalidHandleException& ex) { \
   return SG_INVALID_HANDLE; \
+ } catch (TimeoutException& ex) { \
+  return SG_TIMEOUT; \
 } catch (std::exception& ex) {	\
   return SG_FAILED; \
 }
@@ -63,6 +65,14 @@ SG_RESULT stargazer_getVersion(const SG_HANDLE SG, char* version, uint32_t buffe
   StarGazer_impl *sg = getSG(SG);
   std::string version_str = sg->getVersion();
   strncpy(version, version_str.c_str(), buffer_len);
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_getMarkType(const SG_HANDLE SG, SG_MARKTYPE* markType) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  *markType = sg->getMarkType();
   SG_CATCH;
   return SG_OK;
 }

@@ -1,5 +1,12 @@
 #include <sstream>
 
+
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
+
+#include <math.h>
+
 #include "StarGazer_impl.h"
 #define DEBUG
 
@@ -33,6 +40,7 @@ static const char MSG_IDNUM[] = "IDNum";
 static const char MSG_MARKHEIGHT[] = "MarkHeight";
 static const char MSG_BAUDRATE[] = "Baudrate";
 static const char MSG_MAPDATA[] = "I";
+static const char MSG_CALCHEIGHT[] = "HeightCalc";
 
 static const char MSG_MARK_HLD1S[] = "HLD1S";
 static const char MSG_MARK_HLD2S[] = "HLD2S";
@@ -323,19 +331,29 @@ void StarGazer_impl::getPosition(SG_ID* id, double* x, double* y, double* z, dou
   iss.clear();
   iss.str(value);
   iss >> *a;
+  *a = *a / 180.0 * M_PI;
   ptr += stopIndex;
   _messagePop(ptr, &stopIndex, value);
   iss.clear();
   iss.str(value);
   iss >> *x;
+  *x /= 1000.0;
   ptr += stopIndex;
   _messagePop(ptr, &stopIndex, value);
   iss.clear();
   iss.str(value);
   iss >> *y;
+  *y /= 1000.0;
   ptr += stopIndex;
   _messagePop(ptr, &stopIndex, value);
   iss.clear();
   iss.str(value);
   iss >> *z;
+  *z /= 1000.0;
+}
+
+void StarGazer_impl::calcHeight() {
+  _sendPacket(SYM_WRITE, MSG_CALCHEIGHT);
+  ssr::TimeSpec timeout(10,0);
+  _waitReply(SYM_ACK, MSG_PARAMETERUPDATE, &timeout);
 }

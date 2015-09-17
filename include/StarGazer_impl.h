@@ -200,8 +200,17 @@ class StarGazer_impl {
    */
   void setBaudrate(const int baudrate);
   
-
+  /**
+   * Get Position Of Marker
+   * @param id [out] ID of marker
+   * @param x [out] position.x [m]
+   * @param y [out] position.y [m]
+   * @param z [out] position.z [m]
+   * @param a [out] angular posture in x-y plane (z-axis) [rad]
+   */
   void getPosition(SG_ID* id, double* x, double* y, double* z, double* a);
+
+  void calcHeight();
 };
 
 

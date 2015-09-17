@@ -199,7 +199,12 @@ class StarGazer_impl {
    * @param baudrate Baudrate
    */
   void setBaudrate(const int baudrate);
+ 
+ private:
   
+  void _extractPositionMessage(char* strbuf, SG_ID* id, double* x, double* y, double* z, double* a);
+
+ public: 
   /**
    * Get Position Of Marker
    * @param id [out] ID of marker
@@ -210,7 +215,17 @@ class StarGazer_impl {
    */
   void getPosition(SG_ID* id, double* x, double* y, double* z, double* a);
 
+
+
   void calcHeight();
+  
+  void getPositionInCalcHeight(SG_ID* id, double* x, double* y, double* z, double* a);
+
+  void startMapBuild( void* (cbPositionData)(SG_ID id, double x, double y, double z, double a),
+				      void* (cbMapID)(SG_ID id),
+		      void* (cbParameterUpdated)(void),
+		      ssr::TimeSpec *pTimeout = nullptr);
+
 };
 
 

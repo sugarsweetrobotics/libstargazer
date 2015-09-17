@@ -39,8 +39,11 @@ static const char MSG_REFID[] = "RefID";
 static const char MSG_IDNUM[] = "IDNum";
 static const char MSG_MARKHEIGHT[] = "MarkHeight";
 static const char MSG_BAUDRATE[] = "Baudrate";
-static const char MSG_MAPDATA[] = "I";
 static const char MSG_CALCHEIGHT[] = "HeightCalc";
+static const char MSG_MAPDATA[] = "I";
+static const char MSG_CALCHEIGHTDATA[] = "Z";
+static const char MSG_MAPBUILDDATA[] = "F";
+static const char MSG_MAPID[] = "MAPID";
 
 static const char MSG_MARK_HLD1S[] = "HLD1S";
 static const char MSG_MARK_HLD2S[] = "HLD2S";
@@ -51,6 +54,7 @@ static const char MSG_MARK_HLD3L[] = "HLD3L";
 
 static const char MSG_YES[] = "Yes";
 static const char MSG_NO[] = "No";
+static const char MSG_START[] = "Start";
 static const char MSG_ALONE[] = "Alone";
 static const char MSG_MAP[] = "Map";
 
@@ -316,13 +320,10 @@ void StarGazer_impl::setBaudrate(const int baudrate) {
   _write(MSG_BAUDRATE, oss.str().c_str());
 }
 
-void StarGazer_impl::getPosition(SG_ID* id, double* x, double* y, double* z, double* a) {
-  char strbuf[BUFFER_LEN];
+void StarGazer_impl::_extractPositionMessage(char* strbuf, SG_ID* id, double* x, double* y, double* z, double* a) {
   char value[BUFFER_LEN];
   unsigned int stopIndex = 0;
   char* ptr = strbuf + 2;
-  _waitReply(SYM_RESULT, MSG_MAPDATA, strbuf, BUFFER_LEN);
-  
   _messagePop(ptr, &stopIndex, value);
   std::istringstream iss(value);
   iss >> *id;
@@ -351,9 +352,58 @@ void StarGazer_impl::getPosition(SG_ID* id, double* x, double* y, double* z, dou
   iss >> *z;
   *z /= 1000.0;
 }
+					    
+void StarGazer_impl::getPosition(SG_ID* id, double* x, double* y, double* z, double* a) {
+  char strbuf[BUFFER_LEN];
+  _waitReply(SYM_RESULT, MSG_MAPDATA, strbuf, BUFFER_LEN);
+  _extractPositionMessage(strbuf, id, x, y, z, a);
+}
+
+void StarGazer_impl::getPositionInCalcHeight(SG_ID* id, double* x, double* y, double* z, double* a) {
+  char strbuf[BUFFER_LEN];
+  _waitReply(SYM_RESULT, MSG_CALCHEIGHTDATA, strbuf, BUFFER_LEN);
+  _extractPositionMessage(strbuf, id, x, y, z, a);
+}
 
 void StarGazer_impl::calcHeight() {
   _sendPacket(SYM_WRITE, MSG_CALCHEIGHT);
   ssr::TimeSpec timeout(10,0);
   _waitReply(SYM_ACK, MSG_PARAMETERUPDATE, &timeout);
+}
+
+void StarGazer_impl::startMapBuild( void* (cbPositionData)(SG_ID id, double x, double y, double z, double a),
+				    void* (cbMapID)(SG_ID id),
+				    void* (cbParameterUpdate)(void), 
+				    ssr::TimeSpec *pTimeout) {
+
+  char buffer[BUFFER_LEN];
+  calcStop();
+  setMode(SG_MAP);
+  _write(MSG_MARKMODE, MSG_START);
+  
+  if (pTimeout == NULL) {
+    pTimeout = &m_timeout;
+  }
+  while(1) {
+    unsigned int read_len = 0;
+    _receivePacket(buffer, BUFFER_LEN, &read_len, *pTimeout);
+
+    if (buffer[0] == SYM_RESULT && strcmp(buffer+1, MSG_MAPBUILDDATA) == 0) {
+      double x, y, z, a;
+      SG_ID id;
+      _extractPositionMessage(buffer, &id, &x, &y, &z, &a);
+      cbPositionData(id, x, y, z, a);
+    } else if (buffer[0] == SYM_MESSAGE && strcmp(buffer+1, MSG_MAPID) == 0) {
+      SG_ID id;
+      unsigned int stopIndex = 0;
+      char value[BUFFER_LEN];
+      _messagePop(buffer + strlen(MSG_MAPID) + 2, &stopIndex, value);
+      std::istringstream iss(value);
+      iss >> id;
+      cbMapID(id);
+    } else if (buffer[0] == SYM_ACK && strcmp(buffer+1, MSG_PARAMETERUPDATE) == 0) {
+      cbParameterUpdate();
+    }
+    
+  } 
 }

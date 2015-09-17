@@ -10,17 +10,22 @@
  */
 
 #pragma once 
-
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
+  
 
   typedef int32_t SG_HANDLE;
-  
   typedef int32_t SG_ID;
+
+  typedef void (*CB_FUNCTYPE_POSITION)(SG_ID id, double x, double y, double z, double a); 
+  typedef void (*CB_FUNCTYPE_MAPID)(SG_ID id);
+  typedef void (*CB_FUNCTYPE_PARAMETERUPDATE)(void);
+  
+
+
 
   typedef enum _SG_MODE_ENUM {
     SG_ALONE,
@@ -87,6 +92,17 @@ extern "C" {
   SG_RESULT stargazer_setBaudrate(const SG_HANDLE SG, const int baudrate);
 
   SG_RESULT stargazer_getPosition(const SG_HANDLE SG, SG_ID *id, double *x, double *y, double *z, double *a);
+
+  SG_RESULT stargazer_calcHeight(const SG_HANDLE SG);
+
+  SG_RESULT stargazer_startMapBuild( const SG_HANDLE SG, 
+				  CB_FUNCTYPE_POSITION cbPositionData,
+				  CB_FUNCTYPE_MAPID cbMapID,
+				     CB_FUNCTYPE_PARAMETERUPDATE cbParameterUpdate);
+
+
+
+
 
 #ifdef __cplusplus
 }

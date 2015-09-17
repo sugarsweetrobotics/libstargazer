@@ -371,9 +371,13 @@ void StarGazer_impl::calcHeight() {
   _waitReply(SYM_ACK, MSG_PARAMETERUPDATE, &timeout);
 }
 
-void StarGazer_impl::startMapBuild( void* (cbPositionData)(SG_ID id, double x, double y, double z, double a),
-				    void* (cbMapID)(SG_ID id),
-				    void* (cbParameterUpdate)(void), 
+void StarGazer_impl::startMapBuild(
+				   //void* (cbPositionData)(SG_ID id, double x, double y, double z, double a),
+				   CB_FUNCTYPE_POSITION cbPositionData,
+				   //void* (cbMapID)(SG_ID id),
+				   CB_FUNCTYPE_MAPID cbMapID,
+				   //void* (cbParameterUpdate)(void), 
+				   CB_FUNCTYPE_PARAMETERUPDATE cbParameterUpdate,
 				    ssr::TimeSpec *pTimeout) {
 
   char buffer[BUFFER_LEN];

@@ -212,3 +212,25 @@ SG_RESULT stargazer_getPosition(const SG_HANDLE SG, SG_ID* id, double *x, double
   SG_CATCH;
   return SG_OK;
 }
+
+SG_RESULT stargazer_calcHeight(const SG_HANDLE SG) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  sg->calcHeight();
+  SG_CATCH;
+  return SG_OK;
+}
+
+SG_RESULT stargazer_startMapBuild(const SG_HANDLE SG,
+				  CB_FUNCTYPE_POSITION cbPositionData,
+				  CB_FUNCTYPE_MAPID cbMapID,
+				  CB_FUNCTYPE_PARAMETERUPDATE cbParameterUpdate) {
+  SG_TRY;
+  StarGazer_impl *sg = getSG(SG);
+  ssr::TimeSpec timeout(15, 0);
+  sg->startMapBuild(cbPositionData, cbMapID, cbParameterUpdate, &timeout);
+  SG_CATCH;
+  return SG_OK;
+} 
+
+

@@ -12,6 +12,7 @@
 #include "SerialPort.h"
 #include "Thread.h"
 
+
 class StarGazerException : public std::exception {
  public:
   StarGazerException() {}
@@ -221,10 +222,15 @@ class StarGazer_impl {
   
   void getPositionInCalcHeight(SG_ID* id, double* x, double* y, double* z, double* a);
 
-  void startMapBuild( void* (cbPositionData)(SG_ID id, double x, double y, double z, double a),
-				      void* (cbMapID)(SG_ID id),
-		      void* (cbParameterUpdated)(void),
-		      ssr::TimeSpec *pTimeout = nullptr);
+
+
+  void startMapBuild( ///void* (cbPositionData)(SG_ID id, double x, double y, double z, double a),
+		     CB_FUNCTYPE_POSITION cbPositionData,
+		     //void* (cbMapID)(SG_ID id),
+		     CB_FUNCTYPE_MAPID cbMapID,
+		     //void* (cbParameterUpdate)(void), 
+		     CB_FUNCTYPE_PARAMETERUPDATE cbParameterUpdate,
+		     ssr::TimeSpec *pTimeout = nullptr);
 
 };
 

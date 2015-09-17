@@ -407,7 +407,8 @@ void StarGazer_impl::startMapBuild(
       cbMapID(id);
     } else if (buffer[0] == SYM_ACK && strcmp(buffer+1, MSG_PARAMETERUPDATE) == 0) {
       cbParameterUpdate();
+      break;
     }
-    
   } 
+  calcStop();
 }

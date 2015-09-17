@@ -83,9 +83,40 @@ void view_mode() {
   SG_ID id;
   double x, y, z, a;
   stargazer_calcStart(stargazer);
-  stargazer_getPosition(stargazer, &id, &x, &y, &z, &a);
+  while(1) {
+    stargazer_getPosition(stargazer, &id, &x, &y, &z, &a);
+    printf(" - %d %4.2f %4.2f %4.2f %4.2f\n", id, x, y, z, a); 
+    if (myKbhit()) {
+      int c = myGetch();
+      if (c == 'q') {
+	break;
+      }
+    }
+  }
   stargazer_calcStop(stargazer);
-  printf(" - %d %4.2f %4.2f %4.2f %4.2f\n", id, x, y, z, a); 
+
+}
+
+void cbPosition(SG_ID id, double x, double y, double z, double a) {
+  printf(" - POSITION: %d %4.2f %4.2f %4.2f %4.2f\n", id, x, y, z, a); 
+}
+
+void cbMapID(SG_ID id) {
+  printf(" # MAPID %d REGISTERED!\n", id);
+}
+
+void cbParameterUpdate() {
+  printf(" # PARAMETERUPDATE\n");
+}
+
+int mapbuild_mode() {
+
+  if ((result_t = stargazer_startMapBuild(stargazer, cbPosition, cbMapID, cbParameterUpdate)) != SG_OK) {
+    printf("# ERROR: stargazer_startMapBuild failed. returns (%d)\n", result_t);
+    return -1;
+  }
+    
+  return 0;
 }
 
 /**
@@ -126,6 +157,9 @@ int main(const int argc, const char* argv[]) {
 	  break;
 	case 'v':
 	  view_mode();
+	  break;
+	case 'm':
+	  mapbuild_mode();
 	  break;
 	case 'h': 
 	default:

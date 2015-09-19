@@ -34,6 +34,7 @@ static const char MSG_PARAMETERUPDATE[] = "ParameterUpdate";
 static const char MSG_VERSION[] = "Version";
 static const char MSG_MARKTYPE[] = "MarkType";
 static const char MSG_MARKMODE[] = "MarkMode";
+static const char MSG_MAPMODE[] = "MapMode";
 static const char MSG_HEIGHTFIX[] = "HeightFix";
 static const char MSG_REFID[] = "RefID";
 static const char MSG_IDNUM[] = "IDNum";
@@ -69,6 +70,7 @@ StarGazer_impl::~StarGazer_impl() {
 }
 
 void StarGazer_impl::_sendPacket(const char symbol, const char* message) {
+  dbg("called\n");
   dbg("%c%s\n", symbol, message);
   m_pSerialPort->Write(&SYM_STX, 1);
   ssr::Thread::Sleep(10);
@@ -300,9 +302,11 @@ SG_MODE StarGazer_impl::getMode() {
 }
 
 void StarGazer_impl::setMode(const SG_MODE mode) {
-  std::ostringstream oss;
-  oss << mode;
-  _write(MSG_MARKMODE, oss.str().c_str());
+  if (mode == SG_ALONE) {
+    _write(MSG_MARKMODE, MSG_ALONE);
+  } else {
+    _write(MSG_MARKMODE, MSG_MAP);
+  }
 }
 
 int StarGazer_impl::getBaudrate() {
@@ -383,7 +387,7 @@ void StarGazer_impl::startMapBuild(
   char buffer[BUFFER_LEN];
   calcStop();
   setMode(SG_MAP);
-  _write(MSG_MARKMODE, MSG_START);
+  _write(MSG_MAPMODE, MSG_START);
   
   if (pTimeout == NULL) {
     pTimeout = &m_timeout;
@@ -392,12 +396,12 @@ void StarGazer_impl::startMapBuild(
     unsigned int read_len = 0;
     _receivePacket(buffer, BUFFER_LEN, &read_len, *pTimeout);
 
-    if (buffer[0] == SYM_RESULT && strcmp(buffer+1, MSG_MAPBUILDDATA) == 0) {
+    if ((buffer[0] == SYM_RESULT) && (strncmp(buffer+1, MSG_MAPBUILDDATA, strlen(MSG_MAPBUILDDATA))) == 0) {
       double x, y, z, a;
       SG_ID id;
       _extractPositionMessage(buffer, &id, &x, &y, &z, &a);
       cbPositionData(id, x, y, z, a);
-    } else if (buffer[0] == SYM_MESSAGE && strcmp(buffer+1, MSG_MAPID) == 0) {
+    } else if (buffer[0] == SYM_MESSAGE && strncmp(buffer+1, MSG_MAPID, strlen(MSG_MAPID)) == 0) {
       SG_ID id;
       unsigned int stopIndex = 0;
       char value[BUFFER_LEN];
@@ -408,6 +412,8 @@ void StarGazer_impl::startMapBuild(
     } else if (buffer[0] == SYM_ACK && strcmp(buffer+1, MSG_PARAMETERUPDATE) == 0) {
       cbParameterUpdate();
       break;
+    } else {
+      dbg("ignored.\n");
     }
   } 
   calcStop();

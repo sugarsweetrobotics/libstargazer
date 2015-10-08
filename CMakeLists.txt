@@ -30,10 +30,10 @@ set(SHARE_INSTALL_DIR
     "share/${PROJECT_NAME}-${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 
 # Subdirectories
-add_subdirectory(cmake)
-add_subdirectory(include)
-add_subdirectory(doc)
-add_subdirectory(src)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/include)
+#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/doc)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Package creation
 include(InstallRequiredSystemLibraries)
